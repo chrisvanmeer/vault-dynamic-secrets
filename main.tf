@@ -8,9 +8,9 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "3.53.0"
     }
-    random = {
-      source  = "hashicorp/random"
-      version = "3.5.1"
+    null = {
+      source  = "hashicorp/null"
+      version = "3.2.1"
     }
   }
 }
@@ -29,27 +29,96 @@ data "azuread_client_config" "current" {}
 # Retrieve subscription ID
 data "azurerm_subscription" "current" {}
 
-# Gernerate random UUID
-resource "random_uuid" "random_uuid" {}
+# Retrieve App ID's
+data "azuread_application_published_app_ids" "well_known" {}
+
+data "azuread_service_principal" "msgraph" {
+  application_id = data.azuread_application_published_app_ids.well_known.result.MicrosoftGraph
+}
 
 # Ensure app registration
 resource "azuread_application" "app" {
-  display_name = "Vault Fundamentals"
+  display_name = "Vault"
   owners       = [data.azuread_client_config.current.object_id]
+  required_resource_access {
+    resource_app_id = data.azuread_application_published_app_ids.well_known.result.MicrosoftGraph
 
-  app_role {
-    allowed_member_types = ["Application"]
-    description          = "Reader role enabling app to read subscription details"
-    display_name         = "Reader"
-    enabled              = true
-    id                   = random_uuid.random_uuid.result
-    value                = "Read.All"
+    # Delegated
+    # resource_access {
+    #   id   = data.azuread_service_principal.msgraph.oauth2_permission_scope_ids["Application.Read.All"]
+    #   type = "Scope"
+    # }
+    # resource_access {
+    #   id   = data.azuread_service_principal.msgraph.oauth2_permission_scope_ids["Application.ReadWrite.All"]
+    #   type = "Scope"
+    # }
+    # resource_access {
+    #   id   = data.azuread_service_principal.msgraph.oauth2_permission_scope_ids["Directory.AccessAsUser.All"]
+    #   type = "Scope"
+    # }
+    # resource_access {
+    #   id   = data.azuread_service_principal.msgraph.oauth2_permission_scope_ids["Directory.Read.All"]
+    #   type = "Scope"
+    # }
+    # resource_access {
+    #   id   = data.azuread_service_principal.msgraph.oauth2_permission_scope_ids["Directory.ReadWrite.All"]
+    #   type = "Scope"
+    # }
+    # resource_access {
+    #   id   = data.azuread_service_principal.msgraph.oauth2_permission_scope_ids["Group.Read.All"]
+    #   type = "Scope"
+    # }
+    # resource_access {
+    #   id   = data.azuread_service_principal.msgraph.oauth2_permission_scope_ids["Group.ReadWrite.All"]
+    #   type = "Scope"
+    # }
+    # resource_access {
+    #   id   = data.azuread_service_principal.msgraph.oauth2_permission_scope_ids["GroupMember.Read.All"]
+    #   type = "Scope"
+    # }
+    # resource_access {
+    #   id   = data.azuread_service_principal.msgraph.oauth2_permission_scope_ids["GroupMember.ReadWrite.All"]
+    #   type = "Scope"
+    # }
+
+    # Application
+    # resource_access {
+    #   id   = data.azuread_service_principal.msgraph.app_role_ids["Application.Read.All"]
+    #   type = "Role"
+    # }
+    resource_access {
+      id   = data.azuread_service_principal.msgraph.app_role_ids["Application.ReadWrite.All"]
+      type = "Role"
+    }
+    # resource_access {
+    #   id   = data.azuread_service_principal.msgraph.app_role_ids["Application.ReadWrite.OwnedBy"]
+    #   type = "Role"
+    # }
+    # resource_access {
+    #   id   = data.azuread_service_principal.msgraph.app_role_ids["Directory.Read.All"]
+    #   type = "Role"
+    # }
+    # resource_access {
+    #   id   = data.azuread_service_principal.msgraph.app_role_ids["Directory.ReadWrite.All"]
+    #   type = "Role"
+    # }
+    # resource_access {
+    #   id   = data.azuread_service_principal.msgraph.app_role_ids["Group.Read.All"]
+    #   type = "Role"
+    # }
+    resource_access {
+      id   = data.azuread_service_principal.msgraph.app_role_ids["Group.ReadWrite.All"]
+      type = "Role"
+    }
+    # resource_access {
+    #   id   = data.azuread_service_principal.msgraph.app_role_ids["GroupMember.Read.All"]
+    #   type = "Role"
+    # }
+    # resource_access {
+    #   id   = data.azuread_service_principal.msgraph.app_role_ids["GroupMember.ReadWrite.All"]
+    #   type = "Role"
+    # }
   }
-}
-
-# Create a client secret
-resource "azuread_application_password" "client_secret" {
-  application_object_id = azuread_application.app.object_id
 }
 
 # Create a service principle for the application
@@ -57,15 +126,36 @@ resource "azuread_service_principal" "service_principal" {
   application_id = azuread_application.app.application_id
 }
 
+# Create a client secret
+resource "azuread_application_password" "client_secret" {
+  application_object_id = azuread_application.app.object_id
+}
+
 # Assign the Contributor role to the application service principle
 resource "azurerm_role_assignment" "contributor_role_assignment" {
   scope                = data.azurerm_subscription.current.id
-  role_definition_name = "Contributor"
+  role_definition_name = "Owner"
   principal_id         = azuread_service_principal.service_principal.object_id
 }
 
 # Ensure resource group
-resource "azurerm_resource_group" "rg_development" {
-  name     = "Development"
+resource "azurerm_resource_group" "rg_vault-fundamentals" {
+  name     = "vault-fundamentals"
   location = "West Europe"
 }
+
+
+# Workaround
+# resource "null_resource" "aad_admin_consent" {
+#   triggers = merge(
+#     [for app in azuread_application.app.required_resource_access :
+#       { for role in app.resource_access :
+#         join("_", [app.resource_app_id, role.id]) => role.type
+#       }
+#     ]...
+#   )
+
+#   provisioner "local-exec" {
+#     command = "sleep 30 && az ad app permission admin-consent --id ${azuread_application.app.application_id}"
+#   }
+# }
