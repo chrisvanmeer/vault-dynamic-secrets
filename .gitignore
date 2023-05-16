@@ -96,3 +96,5 @@ terraform.rc
 
 .terraform
 .terraform.*
+**/.terraform
+**/.terraform.*
