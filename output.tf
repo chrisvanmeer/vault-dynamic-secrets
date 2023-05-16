@@ -7,7 +7,7 @@ output "subscription_id" {
 }
 
 output "client_id" {
-  value = azuread_service_principal.service_principal.application_id
+  value = data.azuread_service_principal.vault.application_id
 }
 
 output "client_secret" {

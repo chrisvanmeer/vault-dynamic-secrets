@@ -23,6 +23,8 @@ provider "azurerm" {
   subscription_id = "33ad2909-a454-47be-b158-f3d83c373752"
 }
 
+
+
 # Retrieve current client information
 data "azuread_client_config" "current" {}
 
@@ -30,113 +32,41 @@ data "azuread_client_config" "current" {}
 data "azurerm_subscription" "current" {}
 
 # Retrieve App ID's
-data "azuread_application_published_app_ids" "well_known" {}
+# data "azuread_application_published_app_ids" "well_known" {}
 
-data "azuread_service_principal" "msgraph" {
-  application_id = data.azuread_application_published_app_ids.well_known.result.MicrosoftGraph
-}
+# data "azuread_service_principal" "msgraph" {
+#   application_id = data.azuread_application_published_app_ids.well_known.result.MicrosoftGraph
+# }
 
 # Ensure app registration
-resource "azuread_application" "app" {
-  display_name = "Vault"
-  owners       = [data.azuread_client_config.current.object_id]
-  required_resource_access {
-    resource_app_id = data.azuread_application_published_app_ids.well_known.result.MicrosoftGraph
-
-    # Delegated
-    # resource_access {
-    #   id   = data.azuread_service_principal.msgraph.oauth2_permission_scope_ids["Application.Read.All"]
-    #   type = "Scope"
-    # }
-    # resource_access {
-    #   id   = data.azuread_service_principal.msgraph.oauth2_permission_scope_ids["Application.ReadWrite.All"]
-    #   type = "Scope"
-    # }
-    # resource_access {
-    #   id   = data.azuread_service_principal.msgraph.oauth2_permission_scope_ids["Directory.AccessAsUser.All"]
-    #   type = "Scope"
-    # }
-    # resource_access {
-    #   id   = data.azuread_service_principal.msgraph.oauth2_permission_scope_ids["Directory.Read.All"]
-    #   type = "Scope"
-    # }
-    # resource_access {
-    #   id   = data.azuread_service_principal.msgraph.oauth2_permission_scope_ids["Directory.ReadWrite.All"]
-    #   type = "Scope"
-    # }
-    # resource_access {
-    #   id   = data.azuread_service_principal.msgraph.oauth2_permission_scope_ids["Group.Read.All"]
-    #   type = "Scope"
-    # }
-    # resource_access {
-    #   id   = data.azuread_service_principal.msgraph.oauth2_permission_scope_ids["Group.ReadWrite.All"]
-    #   type = "Scope"
-    # }
-    # resource_access {
-    #   id   = data.azuread_service_principal.msgraph.oauth2_permission_scope_ids["GroupMember.Read.All"]
-    #   type = "Scope"
-    # }
-    # resource_access {
-    #   id   = data.azuread_service_principal.msgraph.oauth2_permission_scope_ids["GroupMember.ReadWrite.All"]
-    #   type = "Scope"
-    # }
-
-    # Application
-    # resource_access {
-    #   id   = data.azuread_service_principal.msgraph.app_role_ids["Application.Read.All"]
-    #   type = "Role"
-    # }
-    resource_access {
-      id   = data.azuread_service_principal.msgraph.app_role_ids["Application.ReadWrite.All"]
-      type = "Role"
-    }
-    # resource_access {
-    #   id   = data.azuread_service_principal.msgraph.app_role_ids["Application.ReadWrite.OwnedBy"]
-    #   type = "Role"
-    # }
-    # resource_access {
-    #   id   = data.azuread_service_principal.msgraph.app_role_ids["Directory.Read.All"]
-    #   type = "Role"
-    # }
-    # resource_access {
-    #   id   = data.azuread_service_principal.msgraph.app_role_ids["Directory.ReadWrite.All"]
-    #   type = "Role"
-    # }
-    # resource_access {
-    #   id   = data.azuread_service_principal.msgraph.app_role_ids["Group.Read.All"]
-    #   type = "Role"
-    # }
-    resource_access {
-      id   = data.azuread_service_principal.msgraph.app_role_ids["Group.ReadWrite.All"]
-      type = "Role"
-    }
-    # resource_access {
-    #   id   = data.azuread_service_principal.msgraph.app_role_ids["GroupMember.Read.All"]
-    #   type = "Role"
-    # }
-    # resource_access {
-    #   id   = data.azuread_service_principal.msgraph.app_role_ids["GroupMember.ReadWrite.All"]
-    #   type = "Role"
-    # }
-  }
-}
+# resource "azuread_application" "app" {
+#   display_name = "Vault"
+#   owners       = [data.azuread_client_config.current.object_id]
+#   required_resource_access {
+#     resource_app_id = data.azuread_application_published_app_ids.well_known.result.MicrosoftGraph
+# 
+#     resource_access {
+#       id   = data.azuread_service_principal.msgraph.app_role_ids["Application.ReadWrite.All"]
+#       type = "Role"
+#     }
+#     resource_access {
+#       id   = data.azuread_service_principal.msgraph.app_role_ids["Group.ReadWrite.All"]
+#       type = "Role"
+#     }
+#   }
+# }
 
 # Create a service principle for the application
-resource "azuread_service_principal" "service_principal" {
-  application_id = azuread_application.app.application_id
-}
-
-# Create a client secret
-resource "azuread_application_password" "client_secret" {
-  application_object_id = azuread_application.app.object_id
-}
+# resource "azuread_service_principal" "service_principal" {
+#   application_id = azuread_application.app.application_id
+# }
 
 # Assign the Contributor role to the application service principle
-resource "azurerm_role_assignment" "contributor_role_assignment" {
-  scope                = data.azurerm_subscription.current.id
-  role_definition_name = "Owner"
-  principal_id         = azuread_service_principal.service_principal.object_id
-}
+# resource "azurerm_role_assignment" "contributor_role_assignment" {
+#   scope                = data.azurerm_subscription.current.id
+#   role_definition_name = "Owner"
+#   principal_id         = azuread_service_principal.service_principal.object_id
+# }
 
 # Ensure resource group
 resource "azurerm_resource_group" "rg_vault-fundamentals" {
@@ -144,6 +74,17 @@ resource "azurerm_resource_group" "rg_vault-fundamentals" {
   location = "West Europe"
 }
 
+data "azuread_application" "vault" {
+  display_name = "Vault"
+}
+data "azuread_service_principal" "vault" {
+  display_name = "Vault"
+}
+
+# Create a client secret
+resource "azuread_application_password" "client_secret" {
+  application_object_id = data.azuread_application.vault.id
+}
 
 # Workaround
 # resource "null_resource" "aad_admin_consent" {
