@@ -71,3 +71,9 @@
    ```shell
    curl -s -H "X-Vault-Token: $VAULT_TOKEN" $VAULT_ADDR/v1/azure/creds/vault-fundamentals | jq -r .data
    ```
+
+8. Log in to Azure with your new credentiials.
+
+   ```shell
+   az login --service-principal -u <app-id> -p <password-or-cert> --tenant <tenant>
+   ```
