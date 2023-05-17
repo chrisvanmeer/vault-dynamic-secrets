@@ -2,13 +2,26 @@
 
 ## Azure
 
+### Schematic overview
+
 ![Schematic overview Azure](img/schematic-overview-azure.png)
 
-1. For the first time, change to the `azure/create` directory.
-2. Run the `terraform plan` / `terraform apply`.
-3. Then make sure an Enterprise Administrator grants the consent for the API permissions.
+### Assumptions
+
+- You have a valid Azure subscription
+- You have valid Azure credentials with enough rights (or for admin consent, you know how to go to)
+- You have set the appropriate `ARM_` environment variables for Azure
+- You have a Vault up and running
+- You have set the appropriate `VAULT_` environment variables for Vault
+- You have valid credentials for Vault and are logged in
+
+### Steps
+
+1. If you are running this for the first time, change to the `azure/create` directory.
+2. Run the `terraform init` / `terraform plan` / `terraform apply`.
+3. Then make sure an Enterprise Administrator grants the [consent](https://learn.microsoft.com/en-us/azure/active-directory/manage-apps/grant-admin-consent?pivots=portal#grant-admin-consent-in-app-registrations) for the API permissions.
 4. Then change to the `azure/execute` directory.
-5. Run the `terraform plan` / `terraform apply`.
+5. Run the `terraform init` / `terraform plan` / `terraform apply`.
 6. Enable the Azure secrets engine in Vault.
 
    ```shell
@@ -84,6 +97,7 @@
 
    ```shell
    cd azure/read
+   terraform init
    terraform plan
    terraform apply
    ```
