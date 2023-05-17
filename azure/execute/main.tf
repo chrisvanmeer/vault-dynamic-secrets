@@ -11,12 +11,18 @@ terraform {
   }
 }
 
+# Use this if you have multiple subscriptions
+variable "azure_subscription_id" {
+  default = "00000000-0000-0000-0000-000000000000"
+}
+
 # Configure the Azure Providers
 provider "azuread" {
 }
 provider "azurerm" {
   features {}
-  subscription_id = "33ad2909-a454-47be-b158-f3d83c373752"
+  # Uncomment next line if not needed
+  subscription_id = var.azure_subscription_id
 }
 
 # Retrieve current client information
