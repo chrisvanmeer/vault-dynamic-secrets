@@ -8,12 +8,12 @@
 
 ### Assumptions
 
-- You have a valid Azure subscription
-- You have valid Azure credentials with enough rights (or for admin consent, you know how to go to)
-- You have set the appropriate `ARM_` environment variables for Azure
-- You have a Vault up and running
-- You have set the appropriate `VAULT_` environment variables for Vault
-- You have valid credentials for Vault and are logged in
+- You have a valid Azure subscription.
+- You have valid Azure credentials with enough rights, or (for admin consent) you know who to go to.
+- You have set the appropriate `ARM_` environment variables for Azure.
+- You have a Vault up and running.
+- You have set the appropriate `VAULT_` environment variables for Vault.
+- You have valid credentials for Vault and are logged in.
 
 ### Steps
 
