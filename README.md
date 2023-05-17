@@ -2,10 +2,12 @@
 
 ## Azure
 
+![Schematic overview Azure](img/schematic-overview-azure.png)
+
 1. For the first time, change to the `azure/create` directory.
 2. Run the `terraform plan` / `terraform apply`.
 3. Then make sure an Enterprise Administrator grants the consent for the API permissions.
-4. Then change to the `azure` directory.
+4. Then change to the `azure/execute` directory.
 5. Run the `terraform plan` / `terraform apply`.
 6. Enable the Azure secrets engine in Vault.
 
@@ -72,13 +74,23 @@
    vault read azure/creds/vault-fundamentals
    ```
 
-   Or through `curl`
+   Through `curl`
 
    ```shell
    curl -s -H "X-Vault-Token: $VAULT_TOKEN" $VAULT_ADDR/v1/azure/creds/vault-fundamentals | jq -r .data
    ```
 
+   Or through Terraform
+
+   ```shell
+   cd azure/read
+   terraform plan
+   terraform apply
+   ```
+
 12. Log in to Azure with your new credentials.
+
+   Through CLI
 
    ```shell
    az login --service-principal -u <app-id> -p <password-or-cert> --tenant <tenant>
